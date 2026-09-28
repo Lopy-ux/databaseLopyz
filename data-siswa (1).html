@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Login Admin - Data Siswa</title>
+<style>
+:root{
+  --bg:#0e0e12; --panel:#17171d; --panel2:#1e1e26; --border:#2b2b34;
+  --text:#eceef2; --muted:#9a9ba6; --accent:#e6394a; --accent2:#ff5b6a;
+  --accentgrad:linear-gradient(135deg,#ff5b6a,#c81e2c);
+  --ok:#2fbf71; --warn:#e0a52c;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);min-height:100%;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+a,button{font-family:inherit;}
+
+/* ---- Auth screens ---- */
+.authwrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;
+  position:relative;overflow:hidden;
+  background:radial-gradient(circle at 15% 20%, rgba(230,57,74,.14), transparent 40%),
+             radial-gradient(circle at 85% 80%, rgba(230,57,74,.10), transparent 40%), var(--bg);}
+.authcard{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:32px 28px;width:100%;max-width:360px;text-align:center;position:relative;z-index:1;}
+.authicon{width:56px;height:56px;border-radius:14px;background:var(--accentgrad);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+.authicon svg{width:28px;height:28px;}
+.authcard h1{font-size:1.3rem;margin:0 0 4px;}
+.authcard .sub{color:var(--muted);font-size:.82rem;margin-bottom:20px;}
+.field{margin-bottom:13px;text-align:left;}
+.field label{display:block;font-size:.76rem;color:var(--muted);margin-bottom:5px;}
+input,select,textarea{width:100%;background:var(--panel2);border:1px solid var(--border);color:var(--text);
+  border-radius:8px;padding:10px 12px;font-size:.88rem;font-family:inherit;}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent2);outline-offset:1px;}
+.pwrow{position:relative;}
+.pwrow button{position:absolute;right:6px;top:6px;bottom:6px;background:none;border:none;color:var(--muted);padding:0 8px;}
+button{cursor:pointer;border-radius:8px;padding:10px 16px;font-size:.86rem;border:1px solid var(--border);background:var(--panel2);color:var(--text);}
+button.primary{background:var(--accentgrad);border:none;color:#fff;width:100%;font-weight:600;padding:12px;}
+.authfoot{color:var(--muted);font-size:.74rem;margin-top:16px;}
+.switchlink{background:none;border:none;color:var(--accent2);text-decoration:underline;font-size:.78rem;padding:0;}
+
+/* ---- App shell ---- */
+#app{display:none;}
+#app.show{display:flex;min-height:100vh;}
+.sidebar{width:220px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;padding:18px 14px;}
+.brand{display:flex;align-items:center;gap:9px;margin-bottom:22px;padding:0 4px;}
+.brand .ico{width:34px;height:34px;border-radius:9px;background:var(--accentgrad);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.brand .ico svg{width:18px;height:18px;}
+.brand b{font-size:.95rem;}
+nav.navlist{display:flex;flex-direction:column;gap:3px;flex:1;}
+nav.navlist button{text-align:left;background:none;border:none;color:var(--muted);padding:9px 12px;border-radius:8px;font-size:.85rem;}
+nav.navlist button.active{background:var(--panel2);color:var(--text);border-left:3px solid var(--accent);}
+.profilebox{border-top:1px solid var(--border);padding-top:14px;margin-top:10px;display:flex;align-items:center;gap:10px;}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--accentgrad);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;}
+.profilebox .pname{font-size:.84rem;font-weight:600;}
+.profilebox .prole{font-size:.72rem;color:var(--muted);}
+.logoutbtn{margin-left:auto;background:none;border:none;color:var(--muted);padding:6px;}
+.logoutbtn:hover{color:var(--accent2);}
+
+.main{flex:1;min-width:0;padding:22px 24px 60px;}
+.pagehead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:18px;flex-wrap:wrap;}
+.pagehead h1{font-size:1.35rem;margin:0;}
+.pagehead .sub{color:var(--muted);font-size:.8rem;margin-top:3px;max-width:52ch;}
+.savechip{font-size:.72rem;color:var(--muted);}
+
+.view{display:none;}
+.view.active{display:block;}
+
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;}
+.stat{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.stat .top{display:flex;justify-content:space-between;align-items:center;}
+.stat .ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--panel2);color:var(--accent2);flex-shrink:0;}
+.stat .num{font-size:1.5rem;font-weight:700;margin-top:10px;}
+.stat .lab{font-size:.78rem;color:var(--muted);margin-top:2px;}
+
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:18px;}
+.panel h2{font-size:1rem;margin:0 0 12px;}
+.bar-row{display:grid;grid-template-columns:56px 1fr 30px;align-items:center;gap:10px;font-size:.8rem;margin:8px 0;}
+.bar-row .lab{color:var(--muted);}
+.bar-track{background:var(--panel2);border-radius:3px;height:8px;overflow:hidden;}
+.bar-fill{height:100%;background:var(--accentgrad);}
+.bar-row .cnt{text-align:right;font-weight:600;}
+.muted{color:var(--muted);font-size:.82rem;}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;}
+#search{flex:1;min-width:180px;}
+button.ghost{background:var(--panel2);}
+button.link{border:none;background:none;padding:2px 6px;color:var(--accent2);text-decoration:underline;font-size:.78rem;}
+button.link.danger{color:var(--accent);}
+button:disabled{opacity:.4;cursor:default;}
+
+.importbox{border:1px dashed var(--border);border-radius:10px;padding:14px;margin-bottom:14px;background:var(--panel2);}
+.importtabs{display:flex;gap:6px;margin-bottom:10px;}
+.importtabs button{padding:6px 12px;font-size:.78rem;}
+.importtabs button.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.importpane{display:none;}
+.importpane.active{display:block;}
+textarea{min-height:90px;font-family:ui-monospace,monospace;font-size:.75rem;resize:vertical;}
+
+.table-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:10px;}
+table{border-collapse:collapse;width:100%;min-width:840px;font-size:.82rem;}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+th{background:var(--panel2);position:sticky;top:0;font-weight:600;font-size:.72rem;color:var(--muted);}
+td.mono,th.mono{font-family:ui-monospace,SFMono-Regular,monospace;}
+tbody tr:hover{background:rgba(230,57,74,.06);}
+.empty{padding:40px 20px;text-align:center;color:var(--muted);}
+
+.pager{display:flex;align-items:center;gap:12px;justify-content:center;margin-top:14px;font-size:.82rem;color:var(--muted);}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-start;justify-content:center;padding:50px 16px;z-index:30;overflow-y:auto;}
+.overlay.show{display:flex;}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px;max-width:420px;width:100%;}
+.modal h3{margin:0 0 14px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
+
+#toastHost{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:50;display:flex;flex-direction:column;gap:8px;width:min(92vw,380px);}
+.toast{padding:11px 14px;border-radius:8px;font-size:.82rem;border:1px solid var(--border);background:var(--panel2);box-shadow:0 4px 14px rgba(0,0,0,.4);}
+.toast.err{border-color:var(--accent);}
+.toast.ok{border-color:var(--ok);}
+
+#errBanner{display:none;background:#3a1a1e;border:1px solid var(--accent);color:var(--text);border-radius:8px;padding:12px 14px;font-size:.78rem;margin-bottom:14px;white-space:pre-wrap;}
+
+@media (max-width:720px){
+  #app.show{flex-direction:column;}
+  .sidebar{width:100%;flex-direction:column;padding:14px 16px;}
+  nav.navlist{flex-direction:row;flex:none;gap:8px;overflow-x:auto;}
+  nav.navlist button{flex:none;white-space:nowrap;}
+  .profilebox .prole{display:none;}
+}
+
+/* ---- effects & photo ---- */
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.statgrid .stat{animation:fadeUp .45s ease both;position:relative;overflow:hidden;
+  transition:transform .2s ease,box-shadow .2s ease;}
+.statgrid .stat:nth-child(2){animation-delay:.05s;}
+.statgrid .stat:nth-child(3){animation-delay:.1s;}
+.statgrid .stat:nth-child(4){animation-delay:.15s;}
+/* 1: hover lift + glow */
+.statgrid .stat:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(230,57,74,.25);}
+/* 2: sweeping highlight across card on hover */
+.statgrid .stat::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;
+  background:linear-gradient(100deg,transparent,rgba(255,91,106,.16),transparent);
+  transform:skewX(-15deg);transition:left .55s ease;}
+.statgrid .stat:hover::after{left:120%;}
+/* 8: number glow-pulse when there's data */
+.stat .num.has-value{animation:numGlow 2.4s ease-in-out infinite;}
+@keyframes numGlow{0%,100%{text-shadow:0 0 0 rgba(255,91,106,0);}50%{text-shadow:0 0 12px rgba(255,91,106,.55);}}
+
+/* 4: dashboard panels stagger in */
+#viewDashboard .panel{animation:fadeUp .5s ease both;}
+#viewDashboard .panel:nth-of-type(1){animation-delay:.1s;}
+#viewDashboard .panel:nth-of-type(2){animation-delay:.18s;}
+#viewDashboard .panel:nth-of-type(3){animation-delay:.26s;}
+
+/* 3: shimmer sweep across breakdown bars on load */
+.bar-fill{position:relative;overflow:hidden;}
+.bar-fill::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);
+  transform:translateX(-100%);animation:barShimmer 1.4s ease .5s;}
+@keyframes barShimmer{to{transform:translateX(160%);}}
+
+/* 5: gallery thumbnail hover zoom */
+.gitem img{transition:transform .2s ease,box-shadow .2s ease;border-radius:50%;object-fit:cover;}
+.gitem:hover img{transform:scale(1.12) rotate(-2deg);box-shadow:0 0 14px rgba(255,91,106,.5);}
+
+/* 6: newest activity-log entry highlight flash */
+.log-new{animation:logFlash 1.4s ease;}
+@keyframes logFlash{0%{background:rgba(230,57,74,.22);}100%{background:transparent;}}
+
+/* 7: dashboard title underline draw-in */
+#viewDashboard .pagehead h1{position:relative;display:inline-block;padding-bottom:6px;}
+#viewDashboard .pagehead h1::after{content:'';position:absolute;left:0;bottom:0;height:2px;
+  width:0;background:var(--accentgrad);animation:underlineDraw .6s ease .15s forwards;}
+@keyframes underlineDraw{to{width:100%;}}
+
+/* 9: empty-state gentle fade+settle */
+#viewDashboard .muted{animation:emptySettle .4s ease both;}
+@keyframes emptySettle{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+/* 10: faint breathing background grid behind dashboard */
+#viewDashboard{position:relative;}
+#viewDashboard::before{content:'';position:absolute;inset:-10px;z-index:-1;pointer-events:none;
+  background-image:linear-gradient(rgba(230,57,74,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(230,57,74,.035) 1px,transparent 1px);
+  background-size:30px 30px;animation:gridBreathe 6s ease-in-out infinite;}
+@keyframes gridBreathe{0%,100%{opacity:.5;}50%{opacity:1;}}
+@keyframes ringPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,91,106,.55);}50%{box-shadow:0 0 0 5px rgba(255,91,106,0);}}
+.avatar{animation:ringPulse 2.6s ease-in-out infinite;}
+button.primary{transition:box-shadow .2s,transform .15s;}
+button.primary:hover{box-shadow:0 0 16px rgba(255,91,106,.55);transform:translateY(-1px);}
+input:focus,select:focus{box-shadow:0 0 0 3px rgba(255,91,106,.18);}
+tbody tr{transition:background .15s;}
+
+.photo-cell{display:flex;align-items:center;gap:10px;}
+.thumb{width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid var(--border);}
+.thumb-ph{width:30px;height:30px;border-radius:50%;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--muted);flex-shrink:0;border:1px solid var(--border);}
+.photoUpload{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.photoPreview{width:64px;height:64px;border-radius:50%;object-fit:cover;border:1px solid var(--border);background:var(--panel2);}
+.photoPreview-ph{width:64px;height:64px;border-radius:50%;background:var(--panel2);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.68rem;text-align:center;border:1px solid var(--border);}
+.gallery{display:flex;flex-wrap:wrap;gap:14px;}
+.gitem{width:74px;text-align:center;}
+.gitem img,.gitem .thumb-ph{width:56px;height:56px;font-size:.85rem;}
+.gitem .gname{font-size:.68rem;color:var(--muted);margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.filtersel{max-width:150px;}
+.dbswitch{display:flex;flex-direction:column;gap:7px;margin-bottom:16px;}
+.dbswitch select{width:100%;font-size:.8rem;padding:7px 9px;}
+.dbrow-btns{display:flex;gap:7px;}
+.dbrow-btns button{flex:1;}
+.btn-sm{padding:6px 8px;font-size:.72rem;}
+.navbtn-theme{display:flex;align-items:center;gap:7px;margin:10px 4px 0;font-size:.8rem;}
+.logoutbtn{display:flex;align-items:center;justify-content:center;}
+.toolbar-secondary{padding-top:10px;border-top:1px solid var(--border);margin-top:2px;}
+.toolbar-label{font-size:.72rem;color:var(--muted);margin-right:2px;}
+th.sortable{cursor:pointer;user-select:none;}
+th.sortable:hover{color:var(--text);}
+.sort-ind{display:inline-block;width:10px;font-size:.7rem;opacity:.8;}
+td.chk,th:first-child{width:34px;}
+
+/* view crossfade */
+.view{opacity:0;transform:translateY(4px);transition:opacity .25s,transform .25s;display:none;}
+.view.active{display:block;opacity:1;transform:translateY(0);}
+
+/* modal scale-in */
+.modal{animation:modalIn .18s ease both;}
+@keyframes modalIn{from{opacity:0;transform:scale(.94);}to{opacity:1;transform:scale(1);}}
+
+/* toast slide */
+@keyframes toastIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.toast{animation:toastIn .22s ease both;}
+
+/* theme toggle */
+:root[data-theme="light"]{ --bg:#f4f2ec; --panel:#ffffff; --panel2:#f0eee6; --border:#dcd8cc; --text:#20241f; --muted:#6b6f66; }
+body{transition:background .25s,color .25s;}
+
+/* ---- secret access-granted login animation: rolling dice ---- */
+.access-anim{position:fixed;inset:0;background:#050506;z-index:100;display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;overflow:hidden;}
+.access-anim.show{opacity:1;pointer-events:all;animation:accessFade 1.9s ease forwards;}
+@keyframes accessFade{0%{opacity:0;}7%{opacity:1;}88%{opacity:1;}100%{opacity:0;}}
+.access-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(230,57,74,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(230,57,74,.06) 1px,transparent 1px);
+  background-size:26px 26px;opacity:.5;}
+.access-content{position:relative;display:flex;flex-direction:column;align-items:center;gap:18px;}
+.dice-scene{perspective:900px;width:88px;height:88px;position:relative;}
+.dice-scene::after{content:'';position:absolute;inset:-18px;border-radius:26px;
+  background:radial-gradient(circle,rgba(255,91,106,.45),transparent 65%);
+  filter:blur(11px);opacity:0;z-index:-1;}
+.access-anim.show .dice-scene::after{animation:ambientGlow 1.15s ease .05s forwards;}
+@keyframes ambientGlow{
+  0%{opacity:0;transform:scale(.5);}
+  22%{opacity:.9;transform:scale(1.15);}
+  75%{opacity:.45;transform:scale(1);}
+  100%{opacity:0;transform:scale(.92);}
+}
+.dice-scene::before{content:'';position:absolute;left:50%;bottom:-6px;width:70px;height:16px;
+  transform:translateX(-50%) scale(.25);border-radius:50%;
+  background:radial-gradient(ellipse,rgba(255,91,106,.6),transparent 72%);opacity:0;}
+.access-anim.show .dice-scene::before{animation:impactRing .5s ease 1.02s forwards;}
+@keyframes impactRing{
+  0%{opacity:0;transform:translateX(-50%) scale(.2);}
+  35%{opacity:.85;}
+  100%{opacity:0;transform:translateX(-50%) scale(1.7);}
+}
+.dice{position:relative;width:100%;height:100%;transform-style:preserve-3d;opacity:0;}
+.access-anim.show .dice{animation:diceIn .05s linear forwards, diceRoll 1.15s cubic-bezier(.22,.68,.26,1) .05s forwards;}
+@keyframes diceIn{to{opacity:1;}}
+@keyframes diceRoll{
+  0%{transform:translateY(55px) rotateX(0) rotateY(0) scale(.62);}
+  30%{transform:translateY(-42px) rotateX(390deg) rotateY(280deg) scale(.94);}
+  58%{transform:translateY(-16px) rotateX(760deg) rotateY(540deg) scale(1.06);}
+  80%{transform:translateY(5px) rotateX(1000deg) rotateY(680deg) scale(1.02);}
+  90%{transform:translateY(-5px) rotateX(1060deg) rotateY(710deg) scale(1);}
+  100%{transform:translateY(0) rotateX(1080deg) rotateY(720deg) scale(1);}
+}
+.dice .face{position:absolute;inset:0;
+  background:linear-gradient(150deg,#2a2c35,#151620 65%);border:2px solid var(--accent2);border-radius:14px;
+  box-shadow:0 0 16px rgba(255,91,106,.45),inset 0 0 0 1px rgba(255,255,255,.1),inset 0 3px 7px rgba(255,255,255,.09),inset 0 -6px 10px rgba(0,0,0,.35);
+  padding:13px;}
+.dice .pips{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:100%;height:100%;}
+.dice .pip{width:11px;height:11px;border-radius:50%;
+  background:radial-gradient(circle at 32% 32%,#ff9aa4,var(--accent2) 60%,#a71f2c 100%);
+  box-shadow:0 0 6px rgba(255,91,106,.85);justify-self:center;align-self:center;}
+.dice .f-front{transform:translateZ(44px);}
+.dice .f-back{transform:rotateY(180deg) translateZ(44px);}
+.dice .f-right{transform:rotateY(90deg) translateZ(44px);}
+.dice .f-left{transform:rotateY(-90deg) translateZ(44px);}
+.dice .f-top{transform:rotateX(90deg) translateZ(44px);}
+.dice .f-bottom{transform:rotateX(-90deg) translateZ(44px);}
+.access-text{font-family:ui-monospace,SFMono-Regular,monospace;font-size:1.25rem;letter-spacing:.18em;
+  color:var(--accent2);text-shadow:0 0 10px rgba(255,91,106,.7);opacity:0;}
+.access-anim.show .access-text{animation:textIn .3s linear 1.25s forwards;}
+@keyframes textIn{to{opacity:1;}}
+.access-sub{font-family:ui-monospace,monospace;font-size:.7rem;color:var(--muted);letter-spacing:.1em;opacity:0;}
+.access-anim.show .access-sub{animation:textIn .3s linear 1.4s forwards;}
+
+/* ===== 20 extra prominent effects ===== */
+button{position:relative;overflow:hidden;}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.4);transform:scale(0);
+  animation:rippleAnim .55s ease-out;pointer-events:none;}
+@keyframes rippleAnim{to{transform:scale(2.6);opacity:0;}}
+button.ghost::before,button.primary::before{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.28),transparent);
+  transform:skewX(-15deg);transition:left .5s ease;pointer-events:none;z-index:0;}
+button.ghost:hover::before,button.primary:hover::before{left:120%;}
+.statgrid .stat{transform-style:preserve-3d;}
+nav.navlist{position:relative;}
+.nav-indicator{position:absolute;left:0;top:0;height:100%;background:var(--panel2);
+  border-left:3px solid var(--accent);border-radius:8px;transition:transform .25s ease,width .25s ease;z-index:0;}
+nav.navlist button{position:relative;z-index:1;}
+nav.navlist button.active{background:transparent;border-left:none;}
+.panel h2{animation:neonFlicker 7s infinite;}
+@keyframes neonFlicker{0%,3%,6%,100%{opacity:1;text-shadow:0 0 8px rgba(255,91,106,.4);}4%,5%{opacity:.65;text-shadow:none;}}
+.particle-layer{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
+.particle{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--accent2);opacity:.45;
+  animation:floatUp linear infinite;}
+@keyframes floatUp{from{transform:translateY(0);opacity:.5;}to{transform:translateY(-140px);opacity:0;}}
+.main{position:relative;perspective:1200px;}
+.spotlight{position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(circle 240px at var(--mx,50%) var(--my,50%),rgba(230,57,74,.09),transparent 70%);}
+.num.glitch-in{animation:numGlitch .5s steps(3);}
+@keyframes numGlitch{0%{text-shadow:2px 0 #4dd0ff,-2px 0 var(--accent2);}50%{text-shadow:-2px 0 #4dd0ff,2px 0 var(--accent2);}100%{text-shadow:none;}}
+.toast.ok{position:relative;padding-right:30px;}
+.toast.ok::after{content:'✦';position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  color:var(--ok);animation:sparklePop .6s ease;}
+@keyframes sparklePop{0%{opacity:0;transform:translateY(-50%) scale(.3);}50%{opacity:1;transform:translateY(-50%) scale(1.3);}100%{opacity:1;transform:translateY(-50%) scale(1);}}
+.view{transition:opacity .3s ease,transform .3s ease;transform:rotateY(-6deg);}
+.view.active{transform:rotateY(0);}
+.avatar{transition:box-shadow .25s,transform .4s;}
+.profilebox:hover .avatar{transform:scale(1.1) rotate(8deg);box-shadow:0 0 0 4px rgba(255,91,106,.3);}
+.pagehead h1{background:linear-gradient(90deg,var(--text),var(--accent2),var(--text));
+  background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:titleShift 4.5s linear infinite;}
+@keyframes titleShift{to{background-position:200% center;}}
+.row-flash{animation:rowFlash 1.2s ease;}
+@keyframes rowFlash{0%{background:rgba(230,57,74,.28);}100%{background:transparent;}}
+#app::after{content:'';position:fixed;inset:0;z-index:60;pointer-events:none;
+  background:repeating-linear-gradient(rgba(255,255,255,.015) 0 1px,transparent 1px 3px);
+  mix-blend-mode:overlay;opacity:.35;}
+#search:not(:placeholder-shown){box-shadow:0 0 0 3px rgba(255,91,106,.22);}
+.navdot{width:6px;height:6px;border-radius:50%;background:var(--accent2);display:inline-block;margin-left:6px;
+  animation:dotPulse 1.6s ease-in-out infinite;}
+@keyframes dotPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.35;transform:scale(.8);}}
+button.loading{animation:loadPulse .9s ease-in-out infinite;}
+@keyframes loadPulse{0%,100%{opacity:1;}50%{opacity:.55;}}
+.modal{position:relative;overflow:hidden;}
+.modal::before{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(100deg,transparent,rgba(255,91,106,.2),transparent);
+  animation:modalSweep .6s ease;pointer-events:none;}
+@keyframes modalSweep{to{left:130%;}}
+#authSubmit::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);
+  transform:translateX(-120%);transition:transform .5s ease;}
+#authSubmit:hover::after{transform:translateX(120%);}
+.gallery{transition:filter .2s ease;}
+.gallery:hover{filter:drop-shadow(0 0 10px rgba(230,57,74,.25));}
+
+/* ===== 10 more effects ===== */
+/* 1: confetti burst piece */
+.confetti-piece{position:fixed;width:6px;height:6px;pointer-events:none;z-index:200;border-radius:1px;}
+@keyframes confettiFly{to{transform:translate(var(--dx),var(--dy)) rotate(var(--rot));opacity:0;}}
+/* 2: smooth expand/collapse for import box */
+.importbox{max-height:0;padding-top:0;padding-bottom:0;margin:0;border-width:0;overflow:hidden;
+  transition:max-height .35s ease,padding .35s ease,margin .35s ease;}
+.importbox.open{max-height:400px;padding:14px;margin-bottom:14px;border-width:1px;}
+/* 3: magnetic hover on primary buttons (JS sets transform) */
+button.primary{transition:transform .12s ease,box-shadow .2s ease;}
+/* 4: checkmark draw-in inside success toast */
+.toast.ok .check{width:14px;height:14px;display:inline-block;vertical-align:-2px;margin-right:6px;}
+.toast.ok .check path{stroke:var(--ok);stroke-width:3;fill:none;stroke-dasharray:20;stroke-dashoffset:20;
+  animation:checkDraw .4s ease .1s forwards;}
+@keyframes checkDraw{to{stroke-dashoffset:0;}}
+/* 5: matrix rain behind login */
+.matrix-col{position:absolute;top:-40px;font-family:ui-monospace,monospace;font-size:13px;color:var(--accent2);
+  opacity:.22;white-space:pre;line-height:1.1;animation:matrixFall linear infinite;}
+@keyframes matrixFall{to{transform:translateY(120vh);}}
+/* 6: sticky table header shadow on scroll */
+.table-scroll.scrolled th{box-shadow:0 4px 8px rgba(0,0,0,.35);}
+/* 7: focus glow color-cycle on inputs */
+input:focus,select:focus,textarea:focus{animation:focusCycle 2.5s ease-in-out infinite;}
+@keyframes focusCycle{0%,100%{box-shadow:0 0 0 3px rgba(255,91,106,.25);}50%{box-shadow:0 0 0 3px rgba(77,208,255,.22);}}
+/* 8: sidebar brand icon parallax tilt */
+.brand .ico{transition:transform .15s ease;}
+/* 9: vignette breathing at screen edges */
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:70;
+  box-shadow:inset 0 0 120px rgba(0,0,0,.55);animation:vignetteBreathe 5s ease-in-out infinite;}
+@keyframes vignetteBreathe{0%,100%{opacity:.7;}50%{opacity:1;}}
+/* 10: pulse ring on newest gallery photo */
+.gitem.newest img{animation:photoPulseRing 1.8s ease-out 2;}
+@keyframes photoPulseRing{0%{box-shadow:0 0 0 0 rgba(255,91,106,.7);}100%{box-shadow:0 0 0 14px rgba(255,91,106,0);}}
+
+/* ===== 5 more effects ===== */
+/* 1: row slide-out on delete */
+tbody tr.row-exit{transition:opacity .28s ease,transform .28s ease;opacity:0;transform:scale(.97) translateX(14px);}
+/* 2: logout power-down flash */
+.power-down{position:fixed;inset:0;background:#000;z-index:110;opacity:0;pointer-events:none;}
+.power-down.show{animation:powerDown .5s ease forwards;}
+@keyframes powerDown{0%{opacity:0;}15%{opacity:1;background:#1a0006;}45%{opacity:.92;background:#000;}100%{opacity:0;}}
+/* 3: odometer blur on stat count-up handled via JS filter, no extra CSS needed */
+/* 4: cinematic letterbox bars during access-granted sequence */
+.letterbox-top,.letterbox-bottom{position:absolute;left:0;right:0;height:0;background:#000;z-index:5;}
+.letterbox-top{top:0;}
+.letterbox-bottom{bottom:0;}
+.access-anim.show .letterbox-top,.access-anim.show .letterbox-bottom{animation:letterboxIn 1.9s ease forwards;}
+@keyframes letterboxIn{0%{height:0;}10%{height:30px;}88%{height:30px;}100%{height:0;}}
+/* 5: sweeping searchlight beam across dashboard background */
+#viewDashboard{overflow:hidden;}
+#viewDashboard::after{content:'';position:absolute;top:-50%;left:-30%;width:35%;height:220%;
+  background:linear-gradient(100deg,transparent,rgba(255,91,106,.05),transparent);
+  transform:rotate(12deg);animation:beamSweep 10s ease-in-out infinite;pointer-events:none;z-index:-1;}
+@keyframes beamSweep{0%,100%{left:-30%;}50%{left:115%;}}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div class="authwrap" id="authScreen">
+  <div class="authcard">
+    <div class="authicon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/></svg></div>
+    <h1>Login Admin</h1>
+    <div class="sub">Data Siswa Sekolah</div>
+
+    <div id="loginFields">
+      <div class="field"><label>Username</label><input id="l_username"></div>
+      <div class="field"><label>Password</label>
+        <div class="pwrow"><input id="l_password" type="password"><button type="button" id="togglePw">Lihat</button></div>
+      </div>
+    </div>
+
+    <button class="primary" id="authSubmit">Masuk</button>
+    <div class="authfoot">Akses khusus admin.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/></svg></div>
+      <b>Data Siswa</b>
+    </div>
+    <div class="dbswitch">
+      <select id="dbSelect"></select>
+      <div class="dbrow-btns">
+        <button class="ghost btn-sm" id="btnAddDb" title="Tambah database sekolah">Tambah</button>
+        <button class="ghost btn-sm" id="btnDelDb" title="Hapus database ini">Hapus</button>
+      </div>
+    </div>
+    <nav class="navlist">
+      <button data-view="dashboard" class="active">Dashboard</button>
+      <button data-view="data">Data Siswa</button>
+    </nav>
+    <button class="ghost navbtn-theme" id="btnTheme">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.4 1.4M17.6 17.6 19 19M5 19l1.4-1.4M17.6 6.4 19 5"/></svg>
+      Tema
+    </button>
+    <div class="profilebox">
+      <div class="avatar" id="avatarLetter">L</div>
+      <div>
+        <div class="pname" id="profileName">Lopy</div>
+        <div class="prole">Admin</div>
+      </div>
+      <button class="logoutbtn" id="btnSettings" title="Pengaturan akun" style="margin-left:auto;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" stroke-dasharray="2.2 3.2"/></svg>
+      </button>
+      <button class="logoutbtn" id="btnLogout" title="Keluar">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div id="errBanner"></div>
+
+    <!-- DASHBOARD VIEW -->
+    <div class="view active" id="viewDashboard">
+      <div class="pagehead">
+        <div><h1>Dashboard</h1><div class="sub">Ringkasan data siswa yang tersimpan di browser ini.</div></div>
+        <div class="savechip" id="dataInfo"></div>
+      </div>
+      <div class="statgrid" id="cards"></div>
+      <div class="panel"><h2>Sebaran per tingkat</h2><div id="breakdown"></div></div>
+      <div class="panel"><h2>Foto siswa terbaru</h2><div class="gallery" id="gallery"></div></div>
+      <div class="panel"><h2>Riwayat aktivitas</h2><div id="activityLog" class="muted"></div></div>
+    </div>
+
+    <!-- DATA VIEW -->
+    <div class="view" id="viewData">
+      <div class="pagehead"><div><h1>Data Siswa</h1><div class="sub">Cari, tambah, ubah, atau impor data siswa. Semua tersimpan lokal di browser ini.</div></div></div>
+
+      <div class="toolbar toolbar-primary">
+        <input type="search" id="search" placeholder="Cari nama, NIK, NISN, atau rombel...">
+        <select id="filterTingkat" class="filtersel"><option value="">Semua tingkat</option></select>
+        <button class="primary" id="btnAdd" style="width:auto;">Tambah siswa</button>
+        <button class="ghost" id="btnBulkDelete" style="display:none;color:var(--accent2);">Hapus terpilih (<span id="bulkCount">0</span>)</button>
+      </div>
+      <div class="toolbar toolbar-secondary">
+        <span class="toolbar-label">Kelola data</span>
+        <button class="ghost" id="btnToggleImport">Import</button>
+        <button class="ghost" id="btnExport">Export CSV</button>
+        <button class="ghost" id="btnBackup">Backup</button>
+        <button class="ghost" id="btnRestore">Pulihkan</button>
+        <input type="file" id="restoreInput" accept=".json" style="display:none;">
+      </div>
+
+      <div class="importbox" id="importBox">
+        <div class="importtabs">
+          <button id="tabPaste" class="active">Tempel teks</button>
+          <button id="tabFile">Unggah file</button>
+          <button id="tabBulkPhoto">Foto massal</button>
+        </div>
+        <div class="importpane active" id="panePaste">
+          <textarea id="pasteArea" style="width:100%;" placeholder="Buka file dump-mu (.json/.csv) di aplikasi lain, salin semua isinya, lalu tempel di sini..."></textarea>
+          <div style="margin-top:8px;"><button class="primary" id="btnProcessPaste" style="width:auto;">Proses teks</button></div>
+          <div class="muted" style="margin-top:8px;">Cara paling andal — tidak bergantung pada dialog pilih file yang kadang tidak muncul.</div>
+        </div>
+        <div class="importpane" id="paneFile">
+          <input type="file" id="fileInput" accept=".json,.csv,application/json,text/csv">
+          <div class="muted" style="margin-top:8px;">Terima file .json (array objek) atau .csv berheader. Jika dialog pilih file tidak muncul saat disentuh, gunakan tab Tempel Teks.</div>
+        </div>
+        <div class="importpane" id="paneBulkPhoto">
+          <input type="file" id="bulkPhotoInput" accept="image/*" multiple>
+          <div class="muted" style="margin-top:8px;">Pilih banyak foto sekaligus. Nama tiap file harus persis NIK atau NISN siswa (mis. <span class="mono">6101052911120003.jpg</span>) agar otomatis tercocokkan.</div>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th><input type="checkbox" id="checkAll"></th>
+            <th data-sort="nama" class="sortable">Nama<span class="sort-ind"></span></th><th class="mono sortable" data-sort="nik">NIK<span class="sort-ind"></span></th><th class="mono">NISN</th><th>Nama Ibu Kandung</th>
+            <th data-sort="rombel" class="sortable">Rombel<span class="sort-ind"></span></th><th data-sort="tgl" class="sortable">Tgl Lahir<span class="sort-ind"></span></th><th>JK</th><th data-sort="tingkat" class="sortable">Tingkat<span class="sort-ind"></span></th><th></th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="emptyState" style="display:none;">Belum ada data. Gunakan <b>Import data</b> atau <b>Tambah siswa</b>.</div>
+      <div class="pager" id="pager"></div>
+    </div>
+  </main>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 id="modalTitle">Tambah siswa</h3>
+    <div class="photoUpload">
+      <img id="photoPreview" class="photoPreview" style="display:none;">
+      <div id="photoPreviewPh" class="photoPreview-ph">Tanpa foto</div>
+      <div>
+        <input type="file" id="f_fotoFile" accept="image/*">
+        <button type="button" class="link danger" id="btnRemovePhoto" style="display:none;">Hapus foto</button>
+      </div>
+    </div>
+    <div class="field"><label>Nama</label><input id="f_nama"></div>
+    <div class="field"><label>NIK</label><input id="f_nik"></div>
+    <div class="field"><label>NISN</label><input id="f_nisn"></div>
+    <div class="field"><label>Nama ibu kandung</label><input id="f_namaIbu"></div>
+    <div class="field"><label>Rombel (mis. 7A)</label><input id="f_rombel"></div>
+    <div class="field"><label>Tanggal lahir (DD-MM-YYYY)</label><input id="f_tgl" placeholder="17-08-2012"></div>
+    <div class="field"><label>Jenis kelamin</label>
+      <select id="f_jk"><option value="L">Laki-laki (L)</option><option value="P">Perempuan (P)</option></select>
+    </div>
+    <div class="field"><label>Tingkat</label><input id="f_tingkat"></div>
+    <div class="modal-actions">
+      <button class="ghost" id="btnCancel">Batal</button>
+      <button class="primary" id="btnSave" style="width:auto;">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="confirmOverlay">
+  <div class="modal">
+    <h3>Konfirmasi</h3>
+    <div id="confirmMsg" style="font-size:.88rem;"></div>
+    <div class="modal-actions">
+      <button class="ghost" id="btnConfirmNo">Batal</button>
+      <button class="primary" id="btnConfirmYes" style="width:auto;background:var(--accentgrad);">Hapus</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="dbModal">
+  <div class="modal">
+    <h3>Tambah Database Sekolah</h3>
+    <div class="field"><label>Nama sekolah (mis. SMP Negeri 2)</label><input id="dbNameInput" placeholder="Sekolah 2"></div>
+    <div class="muted">Data siswa di database baru ini terpisah total dari database lain — jadi cocok untuk beberapa sekolah atau sebagai cadangan.</div>
+    <div class="modal-actions">
+      <button class="ghost" id="btnDbCancel">Batal</button>
+      <button class="primary" id="btnDbSave" style="width:auto;">Buat</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="settingsModal">
+  <div class="modal">
+    <h3>Pengaturan Akun</h3>
+    <div class="field"><label>Password saat ini</label><input id="st_curpass" type="password"></div>
+    <div class="field"><label>Username baru</label><input id="st_newuser" placeholder="Lopy"></div>
+    <div class="field"><label>Password baru</label><input id="st_newpass" placeholder="Kosongkan jika tidak diganti" type="password"></div>
+    <div class="modal-actions">
+      <button class="ghost" id="btnSettingsCancel">Batal</button>
+      <button class="primary" id="btnSettingsSave" style="width:auto;">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastHost"></div>
+
+<div class="access-anim" id="accessAnim">
+  <div class="access-grid"></div>
+  <div class="letterbox-top"></div>
+  <div class="letterbox-bottom"></div>
+  <div class="access-content">
+    <div class="dice-scene"><div class="dice">
+      <div class="face f-front"><div class="pips"><span class="pip" style="grid-area:1/1"></span><span class="pip" style="grid-area:1/3"></span><span class="pip" style="grid-area:2/1"></span><span class="pip" style="grid-area:2/3"></span><span class="pip" style="grid-area:3/1"></span><span class="pip" style="grid-area:3/3"></span></div></div>
+      <div class="face f-back"><div class="pips"><span class="pip" style="grid-area:2/2"></span></div></div>
+      <div class="face f-right"><div class="pips"><span class="pip" style="grid-area:1/1"></span><span class="pip" style="grid-area:2/2"></span><span class="pip" style="grid-area:3/3"></span></div></div>
+      <div class="face f-left"><div class="pips"><span class="pip" style="grid-area:1/1"></span><span class="pip" style="grid-area:1/3"></span><span class="pip" style="grid-area:3/1"></span><span class="pip" style="grid-area:3/3"></span></div></div>
+      <div class="face f-top"><div class="pips"><span class="pip" style="grid-area:1/1"></span><span class="pip" style="grid-area:1/3"></span><span class="pip" style="grid-area:2/2"></span><span class="pip" style="grid-area:3/1"></span><span class="pip" style="grid-area:3/3"></span></div></div>
+      <div class="face f-bottom"><div class="pips"><span class="pip" style="grid-area:1/1"></span><span class="pip" style="grid-area:3/3"></span></div></div>
+    </div></div>
+    <div class="access-text">AKSES DITERIMA</div>
+    <div class="access-sub">selamat datang, Lopy</div>
+  </div>
+</div>
+
+<div class="power-down" id="powerDown"></div>
+
+<script>
+var DEFAULT_PHOTO='data:image/jpeg;base64,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';
+function escHtml(t){ return String(t==null?'':t).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function showErr(msg){ var b=document.getElementById('errBanner'); if(b){ b.style.display='block'; b.textContent='Terjadi kesalahan: '+msg; } }
+window.onerror=function(msg){ showErr(msg); return false; };
+function toast(msg,type){
+  var host=document.getElementById('toastHost'); var el=document.createElement('div');
+  el.className='toast '+(type||'ok');
+  var icon = (type!=='err') ? '<svg class="check" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg>' : '';
+  el.innerHTML = icon+'<span></span>';
+  el.querySelector('span').textContent=msg;
+  host.appendChild(el); setTimeout(function(){el.remove();},3600);
+}
+function confettiBurst(x,y){
+  var colors=['#ff5b6a','#e6394a','#4dd0ff','#f2c94c'];
+  for(var i=0;i<16;i++){
+    var p=document.createElement('div'); p.className='confetti-piece';
+    p.style.left=x+'px'; p.style.top=y+'px';
+    p.style.background=colors[i%colors.length];
+    var ang=Math.random()*Math.PI*2, dist=40+Math.random()*60;
+    p.style.setProperty('--dx',(Math.cos(ang)*dist)+'px');
+    p.style.setProperty('--dy',(Math.sin(ang)*dist)+'px');
+    p.style.setProperty('--rot',(Math.random()*360)+'deg');
+    p.style.animation='confettiFly .7s ease-out forwards';
+    document.body.appendChild(p);
+    (function(el){ setTimeout(function(){ el.remove(); },750); })(p);
+  }
+}
+var confirmCb=null;
+function showModal(id){
+  var ov=document.getElementById(id); ov.classList.add('show');
+  var m=ov.querySelector('.modal');
+  if(m){ m.style.animation='none'; void m.offsetWidth; m.style.animation=''; }
+}
+function askConfirm(msg,cb){ document.getElementById('confirmMsg').textContent=msg; confirmCb=cb; showModal('confirmOverlay'); }
+document.getElementById('btnConfirmNo').onclick=function(){ document.getElementById('confirmOverlay').classList.remove('show'); confirmCb=null; };
+document.getElementById('btnConfirmYes').onclick=function(){ document.getElementById('confirmOverlay').classList.remove('show'); if(confirmCb) confirmCb(); confirmCb=null; };
+
+/* ---------- AUTH (kredensial tetap, khusus admin) ---------- */
+var FIXED_USER='Lopy', FIXED_PASS='opydev23', SESSION_KEY='admin_session_v1', CRED_KEY='admin_cred_override_v1';
+function getCred(){ try{ var r=localStorage.getItem(CRED_KEY); return r?JSON.parse(r):{username:FIXED_USER,password:FIXED_PASS}; }catch(e){ return {username:FIXED_USER,password:FIXED_PASS}; } }
+document.getElementById('togglePw').onclick=function(){
+  var i=document.getElementById('l_password'); var showing=i.type==='password';
+  i.type = showing?'text':'password';
+  this.textContent = showing?'Sembunyikan':'Lihat';
+};
+function playAccessAnim(cb){
+  var el=document.getElementById('accessAnim');
+  el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); cb(); }, 1900);
+}
+document.getElementById('authSubmit').onclick=function(){
+  var u=document.getElementById('l_username').value.trim();
+  var p=document.getElementById('l_password').value;
+  var cred=getCred();
+  if(u===cred.username && p===cred.password){
+    sessionStorage.setItem(SESSION_KEY,'1');
+    document.getElementById('authScreen').style.display='none';
+    playAccessAnim(enterApp);
+  } else {
+    toast('Username atau password salah.','err');
+  }
+};
+document.getElementById('l_password').addEventListener('keydown',function(e){ if(e.key==='Enter') document.getElementById('authSubmit').click(); });
+document.getElementById('btnLogout').onclick=function(){
+  askConfirm('Keluar dari akun admin?', function(){
+    var pd=document.getElementById('powerDown');
+    pd.classList.add('show');
+    setTimeout(function(){
+      sessionStorage.removeItem(SESSION_KEY);
+      document.getElementById('app').classList.remove('show');
+      document.getElementById('authScreen').style.display='flex';
+    }, 260);
+    setTimeout(function(){ pd.classList.remove('show'); }, 550);
+  });
+};
+document.getElementById('btnSettings').onclick=function(){
+  document.getElementById('st_curpass').value=''; document.getElementById('st_newpass').value='';
+  document.getElementById('st_newuser').value=getCred().username;
+  showModal('settingsModal');
+};
+document.getElementById('btnSettingsCancel').onclick=function(){ document.getElementById('settingsModal').classList.remove('show'); };
+document.getElementById('btnSettingsSave').onclick=function(){
+  var cred=getCred();
+  if(document.getElementById('st_curpass').value!==cred.password){ toast('Password saat ini salah.','err'); return; }
+  var newUser=document.getElementById('st_newuser').value.trim()||cred.username;
+  var newPass=document.getElementById('st_newpass').value||cred.password;
+  localStorage.setItem(CRED_KEY, JSON.stringify({username:newUser,password:newPass}));
+  document.getElementById('profileName').textContent=newUser;
+  document.getElementById('avatarLetter').textContent=newUser.charAt(0).toUpperCase();
+  document.getElementById('settingsModal').classList.remove('show');
+  toast('Kredensial diperbarui.','ok');
+};
+function enterApp(){
+  var cred=getCred();
+  document.getElementById('profileName').textContent=cred.username;
+  document.getElementById('avatarLetter').textContent=cred.username.charAt(0).toUpperCase();
+  document.getElementById('authScreen').style.display='none';
+  document.getElementById('app').classList.add('show');
+  initDatabases(); loadData(); render(); renderLog();
+}
+(function initAuth(){
+  if(sessionStorage.getItem(SESSION_KEY)==='1'){ enterApp(); }
+})();
+
+/* ---------- NAV ---------- */
+document.querySelectorAll('nav.navlist button').forEach(function(btn){
+  btn.onclick=function(){
+    document.querySelectorAll('nav.navlist button').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+    document.getElementById(btn.dataset.view==='dashboard'?'viewDashboard':'viewData').classList.add('active');
+    positionNavIndicator();
+  };
+});
+function positionNavIndicator(){
+  var nav=document.querySelector('nav.navlist');
+  var active=nav.querySelector('button.active');
+  var ind=nav.querySelector('.nav-indicator');
+  if(!ind){ ind=document.createElement('div'); ind.className='nav-indicator'; nav.insertBefore(ind, nav.firstChild); }
+  if(!active) return;
+  var isRow = getComputedStyle(nav).flexDirection==='row';
+  if(isRow){
+    ind.style.width=active.offsetWidth+'px'; ind.style.height='100%';
+    ind.style.transform='translateX('+active.offsetLeft+'px)';
+  } else {
+    ind.style.width='100%'; ind.style.height=active.offsetHeight+'px';
+    ind.style.transform='translateY('+active.offsetTop+'px)';
+  }
+}
+
+/* ---- effect helpers: ripple, tilt, particles, spotlight ---- */
+document.addEventListener('click', function(e){
+  var b=e.target.closest('button'); if(!b) return;
+  var rect=b.getBoundingClientRect();
+  var size=Math.max(rect.width,rect.height);
+  var r=document.createElement('span'); r.className='ripple';
+  r.style.width=r.style.height=size+'px';
+  r.style.left=(e.clientX-rect.left-size/2)+'px';
+  r.style.top=(e.clientY-rect.top-size/2)+'px';
+  b.appendChild(r); setTimeout(function(){ r.remove(); },600);
+});
+function tiltMove(e){
+  var c=e.currentTarget, r=c.getBoundingClientRect();
+  var x=(e.clientX-r.left)/r.width-0.5, y=(e.clientY-r.top)/r.height-0.5;
+  c.style.transform='translateY(-3px) rotateX('+(-y*8)+'deg) rotateY('+(x*8)+'deg)';
+}
+function tiltReset(e){ e.currentTarget.style.transform=''; }
+function attachTilt(){
+  document.querySelectorAll('.statgrid .stat').forEach(function(c){
+    c.onmousemove=tiltMove; c.onmouseleave=tiltReset;
+  });
+}
+window.addEventListener('resize', function(){ positionNavIndicator(); });
+(function initAmbientEffects(){
+  var main=document.querySelector('.main'); if(!main) return;
+  var layer=document.createElement('div'); layer.className='particle-layer';
+  for(var i=0;i<14;i++){
+    var p=document.createElement('div'); p.className='particle';
+    p.style.left=Math.random()*100+'%'; p.style.top=(90+Math.random()*20)+'%';
+    p.style.animationDuration=(7+Math.random()*8)+'s'; p.style.animationDelay=(Math.random()*7)+'s';
+    layer.appendChild(p);
+  }
+  main.appendChild(layer);
+  var sl=document.createElement('div'); sl.className='spotlight'; main.appendChild(sl);
+  main.addEventListener('mousemove', function(e){
+    var r=main.getBoundingClientRect();
+    sl.style.setProperty('--mx',(e.clientX-r.left)+'px');
+    sl.style.setProperty('--my',(e.clientY-r.top)+'px');
+  });
+  var tableScroll=document.querySelector('.table-scroll');
+  if(tableScroll){ tableScroll.addEventListener('scroll', function(){
+    tableScroll.classList.toggle('scrolled', tableScroll.scrollTop>0);
+  }); }
+})();
+/* magnetic hover for primary buttons */
+document.querySelectorAll('button.primary').forEach(function(b){
+  b.addEventListener('mousemove', function(e){
+    var r=b.getBoundingClientRect();
+    var mx=(e.clientX-r.left-r.width/2)*0.18, my=(e.clientY-r.top-r.height/2)*0.25;
+    b.style.transform='translate('+mx+'px,'+my+'px)';
+  });
+  b.addEventListener('mouseleave', function(){ b.style.transform=''; });
+});
+/* sidebar brand icon parallax */
+document.addEventListener('mousemove', function(e){
+  var ico=document.querySelector('.brand .ico'); if(!ico) return;
+  var x=(e.clientX/window.innerWidth-0.5)*10, y=(e.clientY/window.innerHeight-0.5)*10;
+  ico.style.transform='rotate('+x+'deg) translateY('+y+'px)';
+});
+/* matrix rain behind login card */
+(function initMatrixRain(){
+  var wrap=document.getElementById('authScreen'); if(!wrap) return;
+  var chars='01ABCDEFガギグゲゴ$#@%&';
+  for(var i=0;i<18;i++){
+    var col=document.createElement('div'); col.className='matrix-col';
+    col.style.left=(Math.random()*100)+'%';
+    col.style.animationDuration=(4+Math.random()*5)+'s';
+    col.style.animationDelay=(Math.random()*5)+'s';
+    var txt=''; for(var j=0;j<14;j++) txt+=chars[Math.floor(Math.random()*chars.length)]+'\n';
+    col.textContent=txt;
+    wrap.insertBefore(col, wrap.firstChild);
+  }
+})();
+
+/* ---------- DATA MODEL (multi-sekolah) ---------- */
+var DB_LIST_KEY='db_list_v1', ACTIVE_DB_KEY='active_db_v1';
+var students=[]; var editingId=null; var page=1; var PAGE_SIZE=30;
+
+function dbKey(id){ return 'siswa_db_v1__'+id; }
+function logKey(id){ return 'actlog_v1__'+id; }
+function getDbList(){ try{ return JSON.parse(localStorage.getItem(DB_LIST_KEY))||[]; }catch(e){ return []; } }
+function saveDbList(list){ localStorage.setItem(DB_LIST_KEY, JSON.stringify(list)); }
+function getActiveDb(){ return localStorage.getItem(ACTIVE_DB_KEY); }
+function setActiveDb(id){ localStorage.setItem(ACTIVE_DB_KEY, id); }
+
+function initDatabases(){
+  var list=getDbList();
+  if(!list.length){
+    var legacy=localStorage.getItem('siswa_db_v1');
+    var id='sekolah_'+Date.now().toString(36);
+    list=[{id:id,name:'Sekolah 1'}];
+    saveDbList(list);
+    if(legacy) localStorage.setItem(dbKey(id), legacy);
+    setActiveDb(id);
+  } else if(!getActiveDb()){ setActiveDb(list[0].id); }
+  renderDbSelect();
+}
+function renderDbSelect(){
+  var list=getDbList(); var active=getActiveDb();
+  var sel=document.getElementById('dbSelect');
+  sel.innerHTML=list.map(function(d){ return '<option value="'+d.id+'"'+(d.id===active?' selected':'')+'>'+d.name+'</option>'; }).join('');
+}
+document.getElementById('dbSelect').onchange=function(){
+  setActiveDb(this.value); page=1; selectedIds={}; loadData(); render(); renderLog();
+};
+document.getElementById('btnAddDb').onclick=function(){ document.getElementById('dbNameInput').value=''; showModal('dbModal'); };
+document.getElementById('btnDbCancel').onclick=function(){ document.getElementById('dbModal').classList.remove('show'); };
+document.getElementById('btnDbSave').onclick=function(){
+  var name=document.getElementById('dbNameInput').value.trim();
+  if(!name){ toast('Nama sekolah wajib diisi.','err'); return; }
+  var list=getDbList(); var id='sekolah_'+Date.now().toString(36);
+  list.push({id:id,name:name}); saveDbList(list); setActiveDb(id);
+  localStorage.setItem(dbKey(id), JSON.stringify([]));
+  document.getElementById('dbModal').classList.remove('show');
+  renderDbSelect(); page=1; selectedIds={}; loadData(); render(); renderLog();
+  toast('Database "'+name+'" dibuat.','ok');
+};
+document.getElementById('btnDelDb').onclick=function(){
+  var list=getDbList();
+  if(list.length<=1){ toast('Tidak bisa menghapus satu-satunya database.','err'); return; }
+  var active=getActiveDb(); var cur=list.find(function(d){ return d.id===active; });
+  askConfirm('Hapus database "'+(cur?cur.name:'')+'" beserta seluruh data siswanya? Tidak bisa dibatalkan.', function(){
+    localStorage.removeItem(dbKey(active)); localStorage.removeItem(logKey(active));
+    list=list.filter(function(d){ return d.id!==active; });
+    saveDbList(list); setActiveDb(list[0].id);
+    renderDbSelect(); page=1; selectedIds={}; loadData(); render(); renderLog();
+    toast('Database dihapus.','ok');
+  });
+};
+
+function logAct(msg){
+  try{
+    var key=logKey(getActiveDb());
+    var log=JSON.parse(localStorage.getItem(key)||'[]');
+    log.unshift({t:Date.now(), msg:msg}); log=log.slice(0,20);
+    localStorage.setItem(key, JSON.stringify(log));
+    renderLog();
+  }catch(e){}
+}
+function renderLog(){
+  var el=document.getElementById('activityLog'); if(!el) return;
+  try{
+    var log=JSON.parse(localStorage.getItem(logKey(getActiveDb()))||'[]');
+    el.innerHTML = log.length ? log.map(function(l,i){
+      var d=new Date(l.t);
+      return '<div class="'+(i===0?'log-new':'')+'" style="margin:4px 0;padding:2px 4px;border-radius:4px;">'+d.toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})+' — '+l.msg+'</div>';
+    }).join('') : 'Belum ada aktivitas.';
+  }catch(e){ el.textContent='Belum ada aktivitas.'; }
+}
+
+function loadData(){ try{ var raw=localStorage.getItem(dbKey(getActiveDb())); students=raw?JSON.parse(raw):[]; }catch(e){ students=[]; } }
+function saveData(){ try{ localStorage.setItem(dbKey(getActiveDb()), JSON.stringify(students)); }catch(e){ toast('Gagal menyimpan ke penyimpanan browser (mungkin penuh).','err'); } }
+function uid(){ return 'S'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+function pick(obj,keys){
+  for(var i=0;i<keys.length;i++){ var k=keys[i];
+    for(var ok in obj){ if(!Object.prototype.hasOwnProperty.call(obj,ok)) continue;
+      if(ok.toLowerCase().replace(/[\s_.-]/g,'')===k){ if(obj[ok]!==undefined&&obj[ok]!==null) return String(obj[ok]).trim(); } } }
+  return '';
+}
+function normalize(o){
+  return { id:pick(o,['pesertadidikid','id'])||uid(), nama:pick(o,['nama','name']), nik:pick(o,['nik']), nisn:pick(o,['nisn']),
+    namaIbu:pick(o,['namaibukandung','namaibu','ibukandung']), rombel:pick(o,['rombel','kelas']),
+    tgl:pick(o,['tanggallahir','tgllahir','birthdate']), jk:(pick(o,['jeniskelamin','jk','gender'])||'').toUpperCase().slice(0,1),
+    tingkat:pick(o,['tingkat','level','grade']), foto:pick(o,['foto','photo','fotosiswa']) };
+}
+function upsertMany(list){
+  var byKey={}, order=[];
+  students.forEach(function(s){ var k=s.nik||s.id; if(!(k in byKey)) order.push(k); byKey[k]=s; });
+  list.forEach(function(raw){ var s=normalize(raw), k=s.nik||s.id; if(!(k in byKey)) order.push(k); byKey[k]=s; });
+  students=order.map(function(k){ return byKey[k]; }); saveData();
+}
+function parseCSVLine(line,delim){
+  var out=[],cur='',inQ=false;
+  for(var i=0;i<line.length;i++){ var c=line[i];
+    if(inQ){ if(c==='"'){ if(line[i+1]==='"'){cur+='"';i++;} else inQ=false; } else cur+=c; }
+    else { if(c==='"') inQ=true; else if(c===delim){ out.push(cur); cur=''; } else cur+=c; } }
+  out.push(cur); return out;
+}
+function parseCSV(text){
+  text=text.replace(/^\uFEFF/,'');
+  var rows=text.split(/\r?\n/).filter(function(r){ return r.trim().length; });
+  if(!rows.length) return [];
+  var delim=(rows[0].indexOf(';')>-1 && rows[0].indexOf(',')===-1)?';':',';
+  var headers=parseCSVLine(rows[0],delim).map(function(h){ return h.trim(); });
+  return rows.slice(1).map(function(r){ var cells=parseCSVLine(r,delim), obj={};
+    headers.forEach(function(h,i){ obj[h]=cells[i]!==undefined?cells[i].trim():''; }); return obj; });
+}
+var sortKey='nama', sortDir=1;
+var lastSavedId=null;
+var selectedIds={};
+function animateNum(el,to){
+  var from=0, dur=420, t0=performance.now();
+  el.style.transition='filter .15s ease';
+  el.style.filter='blur(2px)';
+  function step(t){
+    var p=Math.min(1,(t-t0)/dur);
+    el.textContent=Math.round(from+(to-from)*p);
+    el.style.filter='blur('+(2*(1-p))+'px)';
+    if(p<1) requestAnimationFrame(step); else el.style.filter='';
+  }
+  requestAnimationFrame(step);
+}
+function avgAge(list){
+  var ages=[]; var now=new Date();
+  list.forEach(function(s){
+    var m=(s.tgl||'').match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+    if(m){ var d=new Date(+m[3],+m[2]-1,+m[1]); var age=now.getFullYear()-d.getFullYear();
+      if(now.getMonth()<d.getMonth()||(now.getMonth()===d.getMonth()&&now.getDate()<d.getDate())) age--;
+      if(age>4 && age<25) ages.push(age); }
+  });
+  if(!ages.length) return '-';
+  return (ages.reduce(function(a,b){return a+b;},0)/ages.length).toFixed(1);
+}
+
+function gradeOf(s){ var m=(s.rombel||'').match(/^(\d+)/); return m?m[1]:(s.tingkat||'-'); }
+
+function render(){
+  try{
+    var q=document.getElementById('search').value.trim().toLowerCase();
+    var fSel=document.getElementById('filterTingkat').value;
+    var filtered=students;
+    if(q){ filtered=filtered.filter(function(s){
+      return (s.nama||'').toLowerCase().indexOf(q)>-1 || (s.nik||'').toLowerCase().indexOf(q)>-1 ||
+        (s.nisn||'').toLowerCase().indexOf(q)>-1 || (s.rombel||'').toLowerCase().indexOf(q)>-1 ||
+        (s.tingkat||'').toLowerCase().indexOf(q)>-1; }); }
+    if(fSel){ filtered=filtered.filter(function(s){ return gradeOf(s)===fSel; }); }
+    filtered=filtered.slice().sort(function(a,b){
+      var av=(a[sortKey]||''), bv=(b[sortKey]||'');
+      return String(av).localeCompare(String(bv), 'id', {numeric:true}) * sortDir;
+    });
+
+    var total=students.length;
+    var L=students.filter(function(s){ return s.jk==='L'; }).length;
+    var P=students.filter(function(s){ return s.jk==='P'; }).length;
+    var rSet={}; students.forEach(function(s){ if(s.rombel) rSet[s.rombel]=1; });
+    var rCount=Object.keys(rSet).length;
+
+    document.getElementById('cards').innerHTML=
+      '<div class="stat"><div class="num" data-n="'+total+'">0</div><div class="lab">Total siswa</div></div>'+
+      '<div class="stat"><div class="num" data-n="'+L+'">0</div><div class="lab">Laki-laki</div></div>'+
+      '<div class="stat"><div class="num" data-n="'+P+'">0</div><div class="lab">Perempuan</div></div>'+
+      '<div class="stat"><div class="num" data-n="'+rCount+'">0</div><div class="lab">Jumlah rombel</div></div>'+
+      '<div class="stat"><div class="num">'+avgAge(students)+'</div><div class="lab">Rata-rata umur (thn)</div></div>';
+    document.querySelectorAll('#cards .num[data-n]').forEach(function(el){
+      animateNum(el, +el.dataset.n);
+      el.classList.toggle('has-value', +el.dataset.n>0);
+      el.classList.add('glitch-in');
+    });
+    attachTilt();
+
+    var gradeCounts={}; students.forEach(function(s){ var g=gradeOf(s); gradeCounts[g]=(gradeCounts[g]||0)+1; });
+    var grades=Object.keys(gradeCounts).sort(); var maxCnt=1;
+    grades.forEach(function(g){ if(gradeCounts[g]>maxCnt) maxCnt=gradeCounts[g]; });
+    document.getElementById('breakdown').innerHTML = grades.length ? grades.map(function(g){
+      return '<div class="bar-row"><div class="lab">Tk. '+g+'</div><div class="bar-track"><div class="bar-fill" style="width:'+(gradeCounts[g]/maxCnt*100).toFixed(0)+'%"></div></div><div class="cnt">'+gradeCounts[g]+'</div></div>';
+    }).join('') : '<div class="muted">Belum ada data.</div>';
+
+    var selFilter=document.getElementById('filterTingkat');
+    var curVal=selFilter.value;
+    selFilter.innerHTML='<option value="">Semua tingkat</option>'+grades.map(function(g){ return '<option value="'+g+'">Tingkat '+g+'</option>'; }).join('');
+    selFilter.value=curVal;
+
+    var latest=students.slice(-12).reverse();
+    document.getElementById('gallery').innerHTML = latest.length ? latest.map(function(s,i){
+      return '<div class="gitem'+(i===0?' newest':'')+'"><img src="'+(s.foto||DEFAULT_PHOTO)+'"><div class="gname">'+escHtml(s.nama||'-')+'</div></div>';
+    }).join('') : '<div class="muted">Belum ada siswa. Tambahkan lewat menu Data Siswa.</div>';
+
+    document.getElementById('dataInfo').textContent = total ? (total+' siswa tersimpan') : '';
+
+    var totalPages=Math.max(1, Math.ceil(filtered.length/PAGE_SIZE));
+    if(page>totalPages) page=totalPages;
+    var startIdx=(page-1)*PAGE_SIZE;
+    var pageItems=filtered.slice(startIdx, startIdx+PAGE_SIZE);
+    var tbody=document.getElementById('tbody'); tbody.innerHTML='';
+    pageItems.forEach(function(s){
+      var tr=document.createElement('tr');
+      if(s.id===lastSavedId){ tr.className='row-flash'; }
+      function td(val,cls){ var e=document.createElement('td'); if(cls) e.className=cls; e.textContent=val||'-'; return e; }
+      var tdChk=document.createElement('td'); tdChk.className='chk';
+      var chk=document.createElement('input'); chk.type='checkbox'; chk.checked=!!selectedIds[s.id];
+      chk.onchange=function(){ if(chk.checked) selectedIds[s.id]=true; else delete selectedIds[s.id]; updateBulkBar(); };
+      tdChk.appendChild(chk); tr.appendChild(tdChk);
+      var tdNama=document.createElement('td');
+      var pc=document.createElement('div'); pc.className='photo-cell';
+      var img=document.createElement('img'); img.className='thumb'; img.src=s.foto||DEFAULT_PHOTO; pc.appendChild(img);
+      var nameSpan=document.createElement('span'); nameSpan.textContent=s.nama||'-'; pc.appendChild(nameSpan);
+      tdNama.appendChild(pc);
+      tr.appendChild(tdNama);
+      tr.appendChild(td(s.nik,'mono')); tr.appendChild(td(s.nisn,'mono'));
+      tr.appendChild(td(s.namaIbu)); tr.appendChild(td(s.rombel)); tr.appendChild(td(s.tgl));
+      tr.appendChild(td(s.jk)); tr.appendChild(td(s.tingkat));
+      var tdAct=document.createElement('td');
+      var editBtn=document.createElement('button'); editBtn.className='link'; editBtn.textContent='Ubah';
+      editBtn.onclick=function(){ openModal(s.id); };
+      var delBtn=document.createElement('button'); delBtn.className='link danger'; delBtn.textContent='Hapus';
+      delBtn.onclick=function(){ askConfirm('Hapus data '+(s.nama||'siswa ini')+'?', function(){
+        tr.classList.add('row-exit');
+        setTimeout(function(){
+          students=students.filter(function(x){ return x.id!==s.id; }); saveData(); render(); toast('Data dihapus.','ok'); logAct('Menghapus data '+(s.nama||'siswa'));
+        }, 290);
+      }); };
+      tdAct.appendChild(editBtn); tdAct.appendChild(delBtn); tr.appendChild(tdAct); tbody.appendChild(tr);
+    });
+    document.getElementById('emptyState').style.display = filtered.length?'none':'block';
+    document.querySelector('.table-scroll').style.display = filtered.length?'':'none';
+    var pagerHtml='';
+    if(filtered.length){ pagerHtml='<button class="ghost" id="prevPage" '+(page<=1?'disabled':'')+'>‹ Sebelumnya</button><span>Hal '+page+' / '+totalPages+'</span><button class="ghost" id="nextPage" '+(page>=totalPages?'disabled':'')+'>Berikutnya ›</button>'; }
+    document.getElementById('pager').innerHTML=pagerHtml;
+    var prevBtn=document.getElementById('prevPage'), nextBtn=document.getElementById('nextPage');
+    if(prevBtn) prevBtn.onclick=function(){ if(page>1){page--;render();} };
+    if(nextBtn) nextBtn.onclick=function(){ if(page<totalPages){page++;render();} };
+    updateBulkBar();
+    var dataNav=document.querySelector('nav.navlist button[data-view="data"]');
+    if(dataNav){
+      var existingDot=dataNav.querySelector('.navdot');
+      if(total>0 && !existingDot){ var dot=document.createElement('span'); dot.className='navdot'; dataNav.appendChild(dot); }
+      else if(total===0 && existingDot){ existingDot.remove(); }
+    }
+    positionNavIndicator();
+  }catch(e){ showErr(e.message||String(e)); }
+}
+
+var pendingPhoto='';
+function setPhotoPreview(data){
+  var img=document.getElementById('photoPreview'), ph=document.getElementById('photoPreviewPh'), rm=document.getElementById('btnRemovePhoto');
+  if(data){ img.src=data; img.style.display='block'; ph.style.display='none'; rm.style.display='inline-block'; }
+  else { img.src=DEFAULT_PHOTO; img.style.display='block'; ph.style.display='none'; rm.style.display='none'; }
+}
+function resizeImage(file, cb){
+  var reader=new FileReader();
+  reader.onload=function(){
+    var im=new Image();
+    im.onload=function(){
+      var max=160, w=im.width, h=im.height;
+      if(w>h){ if(w>max){ h=Math.round(h*max/w); w=max; } } else { if(h>max){ w=Math.round(w*max/h); h=max; } }
+      var c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(im,0,0,w,h);
+      cb(c.toDataURL('image/jpeg',0.72));
+    };
+    im.onerror=function(){ toast('Gagal memuat gambar.','err'); };
+    im.src=reader.result;
+  };
+  reader.onerror=function(){ toast('Gagal membaca file foto.','err'); };
+  reader.readAsDataURL(file);
+}
+document.getElementById('f_fotoFile').onchange=function(e){
+  var file=e.target.files[0]; if(!file) return;
+  resizeImage(file, function(dataUrl){ pendingPhoto=dataUrl; setPhotoPreview(dataUrl); });
+  e.target.value='';
+};
+document.getElementById('btnRemovePhoto').onclick=function(){ pendingPhoto=''; setPhotoPreview(''); };
+document.getElementById('filterTingkat').onchange=function(){ page=1; render(); };
+
+function openModal(id){
+  editingId=id||null;
+  var s=id?students.find(function(x){return x.id===id;}):{nama:'',nik:'',nisn:'',namaIbu:'',rombel:'',tgl:'',jk:'L',tingkat:'',foto:''};
+  if(!s) s={nama:'',nik:'',nisn:'',namaIbu:'',rombel:'',tgl:'',jk:'L',tingkat:'',foto:''};
+  document.getElementById('modalTitle').textContent = id?'Ubah siswa':'Tambah siswa';
+  document.getElementById('f_nama').value=s.nama||''; document.getElementById('f_nik').value=s.nik||'';
+  document.getElementById('f_nisn').value=s.nisn||''; document.getElementById('f_namaIbu').value=s.namaIbu||'';
+  document.getElementById('f_rombel').value=s.rombel||''; document.getElementById('f_tgl').value=s.tgl||'';
+  document.getElementById('f_jk').value=s.jk||'L'; document.getElementById('f_tingkat').value=s.tingkat||'';
+  pendingPhoto=s.foto||''; setPhotoPreview(pendingPhoto);
+  showModal('overlay');
+}
+function closeModal(){ document.getElementById('overlay').classList.remove('show'); editingId=null; }
+document.getElementById('btnAdd').onclick=function(){ openModal(null); };
+document.getElementById('btnCancel').onclick=closeModal;
+document.getElementById('btnSave').onclick=function(){
+  var data={ id:editingId||uid(), nama:document.getElementById('f_nama').value.trim(), nik:document.getElementById('f_nik').value.trim(),
+    nisn:document.getElementById('f_nisn').value.trim(), namaIbu:document.getElementById('f_namaIbu').value.trim(),
+    rombel:document.getElementById('f_rombel').value.trim(), tgl:document.getElementById('f_tgl').value.trim(),
+    jk:document.getElementById('f_jk').value, tingkat:document.getElementById('f_tingkat').value.trim(), foto:pendingPhoto||'' };
+  if(!data.nama){ toast('Nama wajib diisi.','err'); return; }
+  if(data.nik && !/^\d{16}$/.test(data.nik)){ toast('NIK harus 16 digit angka.','err'); return; }
+  if(data.nisn && !/^\d{10}$/.test(data.nisn)){ toast('NISN harus 10 digit angka.','err'); return; }
+  if(data.nik){
+    var dup=students.find(function(s){ return s.nik===data.nik && s.id!==data.id; });
+    if(dup){ toast('NIK ini sudah dipakai oleh '+(dup.nama||'siswa lain')+'.','err'); return; }
+  }
+  var wasEdit=!!editingId;
+  if(editingId){ students=students.map(function(s){ return s.id===editingId?data:s; }); } else { students.push(data); }
+  lastSavedId=data.id;
+  saveData(); closeModal(); render(); toast('Data tersimpan.','ok');
+  logAct((wasEdit?'Mengubah':'Menambah')+' data '+(data.nama||'siswa'));
+  setTimeout(function(){ lastSavedId=null; },1300);
+  if(!wasEdit){
+    var addBtn=document.getElementById('btnAdd'); var r=addBtn.getBoundingClientRect();
+    confettiBurst(r.left+r.width/2, r.top+r.height/2);
+  }
+};
+document.getElementById('search').oninput=function(){ page=1; render(); };
+
+document.querySelectorAll('th.sortable').forEach(function(th){
+  th.onclick=function(){
+    var k=th.dataset.sort;
+    if(sortKey===k) sortDir*=-1; else { sortKey=k; sortDir=1; }
+    document.querySelectorAll('th.sortable .sort-ind').forEach(function(s){ s.textContent=''; });
+    th.querySelector('.sort-ind').textContent = sortDir===1?'▲':'▼';
+    render();
+  };
+});
+function updateBulkBar(){
+  var n=Object.keys(selectedIds).length;
+  var btn=document.getElementById('btnBulkDelete');
+  document.getElementById('bulkCount').textContent=n;
+  btn.style.display = n>0 ? 'inline-block' : 'none';
+}
+document.getElementById('checkAll').onchange=function(e){
+  var tbody=document.getElementById('tbody');
+  tbody.querySelectorAll('input[type=checkbox]').forEach(function(c){ c.checked=e.target.checked; c.dispatchEvent(new Event('change')); });
+};
+document.getElementById('btnBulkDelete').onclick=function(){
+  var n=Object.keys(selectedIds).length;
+  askConfirm('Hapus '+n+' siswa terpilih?', function(){
+    students=students.filter(function(s){ return !selectedIds[s.id]; });
+    selectedIds={}; saveData(); render(); toast(n+' data dihapus.','ok'); logAct('Menghapus massal '+n+' siswa');
+  });
+};
+
+document.getElementById('btnTheme').onclick=function(){
+  var cur=document.documentElement.getAttribute('data-theme');
+  var next = cur==='light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  try{ localStorage.setItem('theme_pref', next); }catch(e){}
+};
+(function initTheme(){ try{ var t=localStorage.getItem('theme_pref'); if(t) document.documentElement.setAttribute('data-theme', t); }catch(e){} })();
+
+document.getElementById('btnBackup').onclick=function(){
+  var btn=this; btn.classList.add('loading');
+  try{
+    var blob=new Blob([JSON.stringify(students)],{type:'application/json'});
+    var url=URL.createObjectURL(blob); var a=document.createElement('a');
+    a.href=url; a.download='backup-data-siswa.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); },1500);
+    toast('Backup lengkap (termasuk foto) diunduh.','ok');
+  }catch(e){ toast('Gagal backup: '+e.message,'err'); }
+  setTimeout(function(){ btn.classList.remove('loading'); },700);
+};
+document.getElementById('btnRestore').onclick=function(){ document.getElementById('restoreInput').click(); };
+document.getElementById('restoreInput').onchange=function(e){
+  var file=e.target.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(){
+    try{
+      var data=JSON.parse(reader.result);
+      if(!Array.isArray(data)){ toast('File backup tidak valid.','err'); return; }
+      askConfirm('Pulihkan '+data.length+' data dari backup? Data saat ini akan digantikan.', function(){
+        students=data; saveData(); page=1; render(); toast('Backup dipulihkan.','ok'); logAct('Memulihkan backup ('+data.length+' data)');
+      });
+    }catch(err){ toast('Gagal membaca file backup: '+err.message,'err'); }
+  };
+  reader.readAsText(file); e.target.value='';
+};
+document.getElementById('btnToggleImport').onclick=function(){ document.getElementById('importBox').classList.toggle('open'); };
+function switchImportTab(activeId){
+  ['tabPaste','tabFile','tabBulkPhoto'].forEach(function(id){ document.getElementById(id).classList.toggle('active', id===activeId); });
+  ['panePaste','paneFile','paneBulkPhoto'].forEach(function(id){ document.getElementById(id).classList.toggle('active', id===(activeId==='tabPaste'?'panePaste':activeId==='tabFile'?'paneFile':'paneBulkPhoto')); });
+}
+document.getElementById('tabFile').onclick=function(){ switchImportTab('tabFile'); };
+document.getElementById('tabPaste').onclick=function(){ switchImportTab('tabPaste'); };
+document.getElementById('tabBulkPhoto').onclick=function(){ switchImportTab('tabBulkPhoto'); };
+function handleImportedText(text,isJsonHint){
+  try{
+    text=text.replace(/^\uFEFF/,''); var trimmed=text.trim(); var list;
+    if(isJsonHint || trimmed.charAt(0)==='['||trimmed.charAt(0)==='{'){ var parsed=JSON.parse(trimmed); list=Array.isArray(parsed)?parsed:(parsed.data||[]); }
+    else { list=parseCSV(text); }
+    if(!list||!list.length){ toast('Tidak ada data yang terbaca.','err'); return; }
+    upsertMany(list); page=1; render(); toast('Berhasil impor '+list.length+' baris data.','ok'); logAct('Impor teks ('+list.length+' baris)');
+  }catch(err){ toast('Gagal membaca data: '+(err.message||err),'err'); }
+}
+document.getElementById('fileInput').onchange=function(e){
+  var file=e.target.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(){ handleImportedText(reader.result, /\.json$/i.test(file.name)); };
+  reader.onerror=function(){ toast('Gagal membaca file.','err'); };
+  reader.readAsText(file); e.target.value='';
+};
+document.getElementById('btnProcessPaste').onclick=function(){
+  var txt=document.getElementById('pasteArea').value;
+  if(!txt.trim()){ toast('Tempel data terlebih dahulu.','err'); return; }
+  handleImportedText(txt,false);
+};
+document.getElementById('bulkPhotoInput').onchange=function(e){
+  var files=Array.prototype.slice.call(e.target.files);
+  if(!files.length) return;
+  var matched=0, unmatched=0, remaining=files.length;
+  files.forEach(function(file){
+    var key=file.name.replace(/\.[^.]+$/,'').trim();
+    var s=students.find(function(x){ return x.nik===key || x.nisn===key; });
+    if(!s){ unmatched++; remaining--; if(remaining===0) finishBulkPhoto(); return; }
+    resizeImage(file, function(dataUrl){
+      s.foto=dataUrl; matched++; remaining--;
+      if(remaining===0) finishBulkPhoto();
+    });
+  });
+  function finishBulkPhoto(){
+    saveData(); render(); e.target.value='';
+    toast(matched+' foto cocok, '+unmatched+' tidak cocok.', matched?'ok':'err');
+    logAct('Impor foto massal: '+matched+' cocok');
+  }
+};
+document.getElementById('btnExport').onclick=function(){
+  if(!students.length){ toast('Belum ada data untuk diekspor.','err'); return; }
+  var headers=['nama','nik','nisn','namaIbu','rombel','tgl','jk','tingkat'];
+  var labels=['Nama','NIK','NISN','Nama Ibu Kandung','Rombel','Tanggal Lahir','Jenis Kelamin','Tingkat'];
+  function esc(v){ return '"'+String(v||'').replace(/"/g,'""')+'"'; }
+  var lines=[labels.join(',')].concat(students.map(function(s){ return headers.map(function(h){ return esc(s[h]); }).join(','); }));
+  var csv=lines.join('\n');
+  try{
+    var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); var url=URL.createObjectURL(blob);
+    var a=document.createElement('a'); a.href=url; a.download='data-siswa.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); },1500);
+    toast('File CSV diunduh.','ok');
+  }catch(e){ toast('Gagal mengunduh: '+e.message,'err'); }
+};
+document.getElementById('overlay').addEventListener('click',function(e){ if(e.target.id==='overlay') closeModal(); });
+document.getElementById('confirmOverlay').addEventListener('click',function(e){ if(e.target.id==='confirmOverlay'){ e.currentTarget.classList.remove('show'); confirmCb=null; } });
+</script>
+</body>
+</html>
